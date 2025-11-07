@@ -1,8 +1,5 @@
-// Fichero: dominio/Operador.kt
-// [cite: 127]
 package com.example.demo.Dominio
 
-// Operador hereda de Persona [cite: 102]
 class Operador(
     rut: String,
     nombre: String,

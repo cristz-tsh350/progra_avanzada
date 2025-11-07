@@ -1,6 +1,5 @@
 package com.example.demo.Dominio
 
-
 enum class TipoTarifa {
     RESIDENCIAL,
     COMERCIAL
@@ -12,7 +11,7 @@ class Cliente(
     email: String,
     val direccionFacturacion: String,
     var estado: EstadoCliente,
-    val tipoTarifa: TipoTarifa // <-- Propiedad añadida
+    val tipoTarifa: TipoTarifa
 ) : Persona(rut, nombre, email) {
 
     override val id: String = rut

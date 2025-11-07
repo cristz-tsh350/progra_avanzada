@@ -1,4 +1,3 @@
-// Fichero: composeApp/src/commonMain/kotlin/com.example.demo/PersistenciaDatos.kt
 package com.example.demo.Persistencia
 
 import com.example.demo.Dominio.Boleta
@@ -7,72 +6,69 @@ import com.example.demo.Dominio.EstadoBoleta
 import com.example.demo.Dominio.EstadoCliente
 import com.example.demo.Dominio.LecturaConsumo
 import com.example.demo.Dominio.Medidor
-import com.example.demo.Dominio.TarifaDetalle // <-- IMPORTACIÓN AÑADIDA
+import com.example.demo.Dominio.TarifaDetalle
 import com.example.demo.Dominio.TipoTarifa
 import com.example.demo.Persistencia.BoletaRepositorio
 import com.example.demo.Persistencia.ClienteRepositorio
 import com.example.demo.Persistencia.LecturaRepositorio
 import com.example.demo.Persistencia.MedidorRepositorio
-
-// --- IMPORTACIONES AÑADIDAS PARA GUARDAR EN ARCHIVO ---
-// (Estas importaciones SOLO funcionan en JVM/Desktop)
 import java.io.File
 import java.io.IOException
 
 class PersistenciaDatos : ClienteRepositorio, MedidorRepositorio, LecturaRepositorio, BoletaRepositorio {
 
-    // --- Archivo de Clientes ---
+    // Manejador de archivo para la persistencia de clientes
     private val archivoClientes = File("clientes.csv")
+
+    // Caché en memoria de los clientes, cargada desde archivoClientes
     private val clientes: MutableMap<String, Cliente> = cargarClientes()
 
-    // --- Archivo de Boletas (NUEVO) ---
+    // Manejador de archivo para la persistencia de boletas
     private val archivoBoletas = File("boletas.csv")
-    // 1. MODIFICADO: Ahora carga las boletas desde el archivo
+    // Caché en memoria de las boletas, cargada desde archivoBoletas
     private val boletas: MutableList<Boleta> = cargarBoletas()
 
-    // --- Listas en memoria (sin cambios) ---
+    // Almacén en memoria para medidores
     private val medidores = mutableListOf<Medidor>()
+
+    // Almacén en memoria para lecturas
     private val lecturas = mutableListOf<LecturaConsumo>()
 
-
-    // --- Implementaciones de ClienteRepositorio (sin cambios) ---
     override fun obtenerCliente(rut: String): Cliente? = clientes[rut]
     override fun guardarCliente(cliente: Cliente) {
-        clientes[cliente.rut] = cliente
-        salvarClientes()
+        clientes[cliente.rut] = cliente // Actualiza caché
+        salvarClientes() // Escribe a disco
     }
     override fun obtenerTodosLosClientes(): Map<String, Cliente> = clientes.toMap()
 
-    // --- Implementaciones de BoletaRepositorio (ACTUALIZADO) ---
     override fun obtenerBoleta(idCliente: String, anio: Int, mes: Int): Boleta? {
         // Busca en la lista ya cargada
         return boletas.find { it.idCliente == idCliente && it.anio == anio && it.mes == mes }
     }
 
     override fun guardarBoleta(boleta: Boleta) {
-        // --- INICIO DE LA MODIFICACIÓN ---
 
-        // 1. Buscar si existe una boleta con el mismo ID (cliente-año-mes)
-        //    Usamos el ID único que definimos en la clase Boleta.
+        // Busca si existe una boleta con el mismo ID (cliente-año-mes)
         val indiceExistente = boletas.indexOfFirst { it.id == boleta.id }
 
         if (indiceExistente != -1) {
-            // 2. Si existe, la reemplazamos en la lista
+            // Si existe una boleta, la reemplazamos en la lista
             println("Actualizando boleta existente en persistencia.")
             boletas[indiceExistente] = boleta
         } else {
-            // 3. Si no existe, la añadimos
+            // Si no existe, la añadimos
             println("Añadiendo nueva boleta a persistencia.")
             boletas.add(boleta)
         }
 
-        salvarBoletas()
+        salvarBoletas() // Escribe la lista completa a disco
     }
 
     override fun obtenerTodasLasBoletas(): List<Boleta> = boletas.toList()
 
 
-    // --- Lógica de carga/guardado de Clientes (sin cambios) ---
+    // Carga los clientes desde `clientes.csv` al iniciar la clase
+    // Si el archivo no existe, crea uno con un cliente de prueba
     private fun cargarClientes(): MutableMap<String, Cliente> {
         val mapaClientes = mutableMapOf<String, Cliente>()
         try {
@@ -107,6 +103,8 @@ class PersistenciaDatos : ClienteRepositorio, MedidorRepositorio, LecturaReposit
         return mapaClientes
     }
 
+    // Escribe el mapa (caché) de clientes actual al archivo "clientes.csv"
+    // Sobrescribe el archivo completo
     private fun salvarClientes(mapaClientes: Map<String, Cliente>) {
         try {
             val stringBuilder = StringBuilder()
@@ -126,8 +124,8 @@ class PersistenciaDatos : ClienteRepositorio, MedidorRepositorio, LecturaReposit
     private fun salvarClientes() = salvarClientes(this.clientes)
 
 
-    // --- Lógica de carga/guardado de Boletas (NUEVO) ---
-
+    // Carga las boletas desde `boletas.csv` al iniciar la clase
+    // Reconstruye los objetos `Boleta` y `TarifaDetalle` desde el CSV
     private fun cargarBoletas(): MutableList<Boleta> {
         val listaBoletas = mutableListOf<Boleta>()
         try {
@@ -170,6 +168,7 @@ class PersistenciaDatos : ClienteRepositorio, MedidorRepositorio, LecturaReposit
         return listaBoletas
     }
 
+    // Escribe la lista (caché) de boletas actual al archivo `boletas.csv`
     private fun salvarBoletas() {
         try {
             val stringBuilder = StringBuilder()
@@ -193,14 +192,11 @@ class PersistenciaDatos : ClienteRepositorio, MedidorRepositorio, LecturaReposit
         }
     }
 
-
-    // --- Implementaciones de MedidorRepositorio (sin cambios) ---
     override fun obtenerMedidoresCliente(idCliente: String): List<Medidor> {
         return medidores
     }
     override fun guardarMedidor(medidor: Medidor) { medidores.add(medidor) }
 
-    // --- Implementaciones de LecturaRepositorio (sin cambios) ---
     override fun obtenerLectura(idMedidor: String, anio: Int, mes: Int): LecturaConsumo? {
         return lecturas.find { it.idMedidor == idMedidor && it.anio == anio && it.mes == mes }
     }

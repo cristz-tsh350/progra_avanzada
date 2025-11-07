@@ -1,10 +1,13 @@
 package com.example.demo.Servicios
 
-import com.example.demo.Dominio.* // Importa todo de Dominio
+import com.example.demo.Dominio.*
+
+// Servicio tipo Fábrica
+// Debe de crear y devolver la implementación correcta de la Tarifa según el tipo de cliente
 
 class TarifaService {
 
-    // Ahora usa 'when' para decidir qué tarifa devolver (Polimorfismo)
+    // Devuelve la si la Tarifa es correcta (Residencial o Comercial)
     fun tarifaParaCliente(cliente: Cliente): Tarifa {
         return when (cliente.tipoTarifa) {
             TipoTarifa.RESIDENCIAL -> TarifaResidencial(
@@ -15,8 +18,8 @@ class TarifaService {
             TipoTarifa.COMERCIAL -> TarifaComercial(
                 cargoFijo = 800.0,
                 precioKwh = 150.0,
-                recargoComercial = 250.0, // Recargo adicional
-                iva = 0.19 // Diferente cálculo de IVA (aquí iría)
+                recargoComercial = 250.0, // Recargo adicional por ser comercial
+                iva = 0.19
             )
         }
     }

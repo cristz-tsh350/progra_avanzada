@@ -1,58 +1,52 @@
-This is a Kotlin Multiplatform project targeting Web, Desktop (JVM).
+Proyecto CGE Programación Avanzada S2
+Integrantes: - Martín Fuentes
+             - Cristóbal Herrera
+             - Pablo Ortega
 
-* [/composeApp](./composeApp/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-    - [commonMain](./composeApp/src/commonMain/kotlin) is for code that’s common for all targets.
-    - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-      For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-      the [iosMain](./composeApp/src/iosMain/kotlin) folder would be the right place for such calls.
-      Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./composeApp/src/jvmMain/kotlin)
-      folder is the appropriate location.
 
-### Build and Run Desktop (JVM) Application
+Descripción General
 
-To build and run the development version of the desktop app, use the run configuration from the run widget
-in your IDE’s toolbar or run it directly from the terminal:
+Este proyecto consiste en el desarrollo de un sistema de gestión de clientes y consumo eléctrico utilizando Kotlin Multiplatform. 
+El programa permite registrar clientes, asociar medidores eléctricos, guardar lecturas de consumo mensual y generar boletas automáticas 
+con el cálculo según el tipo de tarifa.
 
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:run
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:run
-  ```
+Objetivo
 
-### Build and Run Web Application
+El objetivo principal es aplicar los principios de la programación orientada a objetos (POO) en un contexto real. 
+El sistema demuestra el uso de herencia, polimorfismo, encapsulamiento y abstracción.
 
-To build and run the development version of the web app, use the run configuration from the run widget
-in your IDE's toolbar or run it directly from the terminal:
+Funcionamiento del Programa
 
-- for the Wasm target (faster, modern browsers):
-    - on macOS/Linux
-      ```shell
-      ./gradlew :composeApp:wasmJsBrowserDevelopmentRun
-      ```
-    - on Windows
-      ```shell
-      .\gradlew.bat :composeApp:wasmJsBrowserDevelopmentRun
-      ```
-- for the JS target (slower, supports older browsers):
-    - on macOS/Linux
-      ```shell
-      ./gradlew :composeApp:jsBrowserDevelopmentRun
-      ```
-    - on Windows
-      ```shell
-      .\gradlew.bat :composeApp:jsBrowserDevelopmentRun
-      ```
+El usuario puede registrar nuevos clientes, agregar sus direcciones y asociarles medidores monofásicos o trifásicos. 
+Luego se ingresan las lecturas de consumo mensual, y el sistema calcula el total a pagar aplicando una tarifa residencial o comercial. 
+Finalmente, se genera una boleta con el detalle de consumo, subtotal, cargos, IVA y total.
 
----
+El sistema también permite guardar la información de los clientes y medidores en un archivo JSON, lo que asegura la persistencia 
+de los datos entre ejecuciones. Además, se incluye la opción de generar boletas en formato PDF en la versión de escritorio.
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html),
-[Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/#compose-multiplatform),
-[Kotlin/Wasm](https://kotl.in/wasm/)…
+Estructura del Proyecto
 
-We would appreciate your feedback on Compose/Web and Kotlin/Wasm in the public Slack
-channel [#compose-web](https://slack-chats.kotlinlang.org/c/compose-web).
-If you face any issues, please report them on [YouTrack](https://youtrack.jetbrains.com/newIssue?project=CMP).
+El código está organizado en diferentes paquetes según su función. 
+En el módulo domain se encuentran las clases principales como Cliente, Medidor, Tarifa y Boleta. 
+En el módulo service se encuentra la lógica de facturación, en persistence se maneja el guardado y carga de datos, y en pdf se genera el 
+documento de boleta en formato PDF.
+
+Ejemplo de Uso
+
+Un cliente puede registrarse con su RUT, nombre y dirección. 
+Luego se le asigna un medidor y se registran las lecturas de consumo de un mes determinado. 
+Al seleccionar la tarifa, el sistema genera automáticamente una boleta que puede guardarse como PDF.
+
+Conclusión
+
+El proyecto demuestra el uso correcto de la programación orientada a objetos y su aplicación práctica en un sistema de facturación eléctrica. 
+La implementación cumple con los requerimientos del enunciado, mostrando un código modular, reutilizable y bien estructurado, 
+capaz de gestionar datos y generar reportes de manera automática.
+
+El proyecto es una aplicación hecha en Kotlin Multiplatform, lo que significa que puede funcionar
+tanto en computadora como en la web usando el mismo código base. 
+Usa Compose Multiplatform para crear la interfaz gráfica y está bien organizado en carpetas que separan el código común del específico de cada plataforma.
+
+En cuanto a los criterios de la rúbrica de programación avanzada, el proyecto cumple con los puntos técnicos más importantes:
+tiene buena organización, cuenta con el cambio de interfaz a modo oscuro, también genera las boletas en formato PDF y por último 
+calcula el valor de las boletas

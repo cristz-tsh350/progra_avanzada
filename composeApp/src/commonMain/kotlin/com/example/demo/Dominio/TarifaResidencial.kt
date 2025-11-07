@@ -1,16 +1,14 @@
-// Fichero: dominio/TarifaResidencial.kt
-// [cite: 129]
 package com.example.demo.Dominio
-// Implementa la interfaz Tarifa [cite: 105]
+
+// Implementación concreta de la Tarifa para clientes Residenciales
 class TarifaResidencial(
-    val cargoFijo: Double, // [cite: 130]
-    val precioKwh: Double, // [cite: 130]
-    val iva: Double // [cite: 130]
+    val cargoFijo: Double,
+    val precioKwh: Double,
+    val iva: Double
 ) : Tarifa {
 
     override fun nombre(): String = "Tarifa Residencial"
 
-    // Implementación polimórfica [cite: 37, 107]
     override fun calcular(kwh: Double): TarifaDetalle {
         val subtotal = (kwh * precioKwh)
         val cargos = cargoFijo

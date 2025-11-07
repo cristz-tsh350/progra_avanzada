@@ -1,4 +1,3 @@
-// Fichero: composeApp/src/commonMain/kotlin/com/example/demo/App.kt
 package com.example.demo
 
 import androidx.compose.foundation.layout.*
@@ -25,15 +24,14 @@ import com.example.demo.Persistencia.PersistenciaDatos
 import com.example.demo.Servicios.PdfService
 import com.example.demo.Servicios.TarifaService
 
-// --- Instanciamos los servicios ---
-val persistencia = PersistenciaDatos() // Esto ahora guarda Clientes y Boletas
+val persistencia = PersistenciaDatos() // Ahora se guardan los Clientes y Boletas aquí
 val tarifaService = TarifaService()
 val pdfService = PdfService()
 val boletaService = BoletaService(
     persistencia, persistencia, persistencia, persistencia, tarifaService
 )
 
-// --- Definimos las pantallas ---
+// Se define las distintas rutas de la app para la navegación
 enum class Pantalla {
     REGISTRAR_CLIENTE,
     REGISTRAR_LECTURA,
@@ -42,27 +40,27 @@ enum class Pantalla {
     VER_BOLETAS
 }
 
-
+//Raíz de la aplicación
 @Composable
 fun App(
     onOpenPdf: (bytes: ByteArray, filename: String) -> Unit
 ) {
-    // --- LÓGICA DEL TEMA OSCURO (CORREGIDA) ---
-    val systemIsDark = isSystemInDarkTheme() // 1. Llama a la función composable aquí
-    var isDarkMode by remember { mutableStateOf(systemIsDark) } // 2. Guarda el valor en 'remember'
+    val systemIsDark = isSystemInDarkTheme() // Llama a la función composable aquí
+    var isDarkMode by remember { mutableStateOf(systemIsDark) } // Se guarda el "valor" en 'remember'
     val lightColors = lightColorScheme()
     val darkColors = darkColorScheme()
     val colorScheme = if (isDarkMode) darkColors else lightColors
-    // --- FIN DE LA CORRECCIÓN ---
+
 
     MaterialTheme(
         colorScheme = colorScheme
     ) {
+        // Almacena la ruta que se está mostrando actualmente
         var pantallaActual by remember { mutableStateOf(Pantalla.REGISTRAR_CLIENTE) }
 
         Surface(modifier = Modifier.fillMaxSize()) {
             Column {
-                // --- Fila para el Switch de Modo Oscuro ---
+                // Switch para el Modo oscuro
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -76,10 +74,9 @@ fun App(
                     )
                 }
 
-                // --- BARRA DE NAVEGACIÓN GLOBAL ---
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceAround // Mejor distribución
+                    horizontalArrangement = Arrangement.SpaceAround
                 ) {
                     val colorActivo = MaterialTheme.colorScheme.primary
                     val colorInactivo = Color.Gray
@@ -100,13 +97,13 @@ fun App(
                         Text("Ver Boletas", color = if (pantallaActual == Pantalla.VER_BOLETAS) colorActivo else colorInactivo)
                     }
                 }
-                Divider() // Separador visual
-                // --- FIN BARRA DE NAVEGACIÓN ---
+                Divider()
 
 
                 when (pantallaActual) {
 
                     Pantalla.REGISTRAR_CLIENTE -> {
+                        // Almacena el estado de los campos del formulario
                         var rut by remember { mutableStateOf("") }
                         var nombre by remember { mutableStateOf("") }
                         var email by remember { mutableStateOf("") }
@@ -130,12 +127,14 @@ fun App(
                             Button(onClick = {
                                 val tipo = if (tipoTarifaStr.uppercase().startsWith("COMER")) TipoTarifa.COMERCIAL else TipoTarifa.RESIDENCIAL
                                 val nuevoCliente = Cliente(
+                                    // Se crea el cliente
                                     rut = rut, nombre = nombre, email = email,
                                     direccionFacturacion = direccion,
                                     estado = EstadoCliente.ACTIVO,
                                     tipoTarifa = tipo
                                 )
                                 try {
+                                    // Llama al repositorio para guardar al cliente
                                     persistencia.guardarCliente(nuevoCliente)
                                     mensaje = "¡Cliente $nombre guardado!"
                                     rut = ""; nombre = ""; email = ""; direccion = ""; tipoTarifaStr = "RESIDENCIAL"
@@ -143,7 +142,7 @@ fun App(
                                     mensaje = "Error al guardar: ${e.message}"
                                 }
                             }) { Text("Guardar Cliente") }
-
+                            // Muestra si se pudo crear el cliente o no
                             Spacer(Modifier.height(16.dp))
                             mensaje?.let {
                                 Text(it, color = if (it.startsWith("Error")) Color.Red else Color.Green)
@@ -152,6 +151,7 @@ fun App(
                     }
 
                     Pantalla.VER_CLIENTES -> {
+                        // Obtiene los datos recientes del repositorio
                         val clientesGuardados = persistencia.obtenerTodosLosClientes().values.toList()
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text("Lista de Clientes Guardados", style = MaterialTheme.typography.headlineSmall)
@@ -161,7 +161,9 @@ fun App(
                             } else {
                                 LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                     items(clientesGuardados) { cliente ->
+                                        // Muestra cada cliente en tarjetas
                                         Card(modifier = Modifier.fillMaxWidth()) {
+                                            // Se muestra la lista de cada cliente
                                             Column(modifier = Modifier.padding(16.dp)) {
                                                 Text(
                                                     text = "${cliente.nombre} (${cliente.rut})",
@@ -189,6 +191,7 @@ fun App(
                         }
                     }
 
+                    // Ruta para ver las boletas
                     Pantalla.VER_BOLETAS -> {
                         val boletasGuardadas = persistencia.obtenerTodasLasBoletas()
 
@@ -229,6 +232,7 @@ fun App(
                     }
 
                     Pantalla.REGISTRAR_LECTURA -> {
+                        // Estado del formulario de las lecturas
                         var idMedidor by remember { mutableStateOf("1-9") }
                         var anio by remember { mutableStateOf("2025") }
                         var mes by remember { mutableStateOf("10") }
@@ -236,6 +240,7 @@ fun App(
                         var mensaje by remember { mutableStateOf<String?>(null) }
 
                         Column(modifier = Modifier.padding(16.dp)) {
+                            // Creación de los campos a rellenar
                             Text("2. Registrar Lectura Mensual", style = MaterialTheme.typography.headlineSmall)
                             Spacer(Modifier.height(16.dp))
                             OutlinedTextField(idMedidor, { idMedidor = it }, label = { Text("ID Medidor (RUT Cliente)") })
@@ -245,18 +250,23 @@ fun App(
                             Spacer(Modifier.height(16.dp))
                             Button(onClick = {
                                 try {
+                                    // Se crea la lectura de los campos
                                     val nuevaLectura = LecturaConsumo(
                                         idMedidor = idMedidor,
                                         anio = anio.toInt(),
                                         mes = mes.toInt(),
                                         kwhLeidos = kwhLeidos.toDouble()
                                     )
-                                    persistencia.guardarLectura(nuevaLectura) // (Sigue en memoria)
+                                    // Guarda la lectura en memoria
+                                    persistencia.guardarLectura(nuevaLectura)
+                                    // Lectura exitosa
                                     mensaje = "¡Lectura de $kwhLeidos KWh guardada!"
                                     kwhLeidos = ""
                                 } catch (e: Exception) {
+                                    // No se logró la lectura
                                     mensaje = "Error al guardar la lectura: ${e.message}"
                                 }
+                            // Muestra mensaje
                             }) { Text("Guardar Lectura") }
 
                             Spacer(Modifier.height(16.dp))
@@ -267,33 +277,35 @@ fun App(
                     }
 
                     Pantalla.EMITIR_BOLETA -> {
+                        // Creación de los campos a rellenar con ejemplos
                         var rut by remember { mutableStateOf("1-9") }
                         var anio by remember { mutableStateOf("2025") }
                         var mes by remember { mutableStateOf("10") }
                         var boletaResult by remember { mutableStateOf<Boleta?>(null) }
                         var error by remember { mutableStateOf<String?>(null) }
 
+                        // Estado del formulario
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text("3. Emitir Boleta", style = MaterialTheme.typography.headlineSmall)
                             Spacer(Modifier.height(16.dp))
                             OutlinedTextField(rut, { rut = it }, label = { Text("RUT Cliente") })
                             Row {
                                 OutlinedTextField(anio, { anio = it }, label = { Text("Año") }, modifier = Modifier.weight(1f))
-                                // --- LÍNEA CORREGIDA ---
                                 OutlinedTextField(mes, { mes = it }, label = { Text("Mes") }, modifier = Modifier.weight(1f))
                             }
                             Spacer(Modifier.height(16.dp))
                             Button(onClick = {
                                 try {
+                                    // Se llama al servicio para poder crear o recuperar la boleta
                                     error = null
                                     boletaResult = boletaService.emitirBoletaMensual(
                                         rutCliente = rut, anio = anio.toInt(), mes = mes.toInt()
                                     )
-                                    // 'emitirBoletaMensual' ahora guarda en disco
-
+                                    // Llama al servicio para exportar el PDF
                                     val pdfBytes = boletaService.exportarPdfClienteMes(
                                         rutCliente = rut, anio = anio.toInt(), mes = mes.toInt(), pdf = pdfService
                                     )
+                                    // Se abre el PDF con la función 'abstract'
                                     onOpenPdf(pdfBytes, "boleta-$rut-$mes-$anio.pdf")
                                 } catch (e: Exception) {
                                     boletaResult = null
@@ -303,12 +315,15 @@ fun App(
                                 Text("Emitir Boleta y Abrir PDF")
                             }
 
+
+                            // Se muestra el resultado de la boleta
                             Spacer(Modifier.height(16.dp))
                             boletaResult?.let {
                                 Text("Boleta Generada:", style = MaterialTheme.typography.titleMedium)
                                 Text("Cliente: ${it.idCliente}")
                                 Text("Total a Pagar: $${it.detalle.total}")
                             }
+                            // Error al crear la boleta
                             error?.let {
                                 Text(it, color = Color.Red)
                             }
