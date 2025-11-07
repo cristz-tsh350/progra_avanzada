@@ -2,6 +2,7 @@
 // [cite: 150]
 package com.example.demo.Dominio
 
+
 // Hereda de Medidor
 class MedidorMonofasico(
     codigo: String,

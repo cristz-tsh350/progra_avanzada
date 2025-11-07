@@ -3,63 +3,192 @@ package com.example.demo.Persistencia
 
 import com.example.demo.Dominio.Boleta
 import com.example.demo.Dominio.Cliente
+import com.example.demo.Dominio.EstadoBoleta
 import com.example.demo.Dominio.EstadoCliente
 import com.example.demo.Dominio.LecturaConsumo
 import com.example.demo.Dominio.Medidor
+import com.example.demo.Dominio.TarifaDetalle // <-- IMPORTACIÓN AÑADIDA
 import com.example.demo.Dominio.TipoTarifa
 import com.example.demo.Persistencia.BoletaRepositorio
 import com.example.demo.Persistencia.ClienteRepositorio
 import com.example.demo.Persistencia.LecturaRepositorio
 import com.example.demo.Persistencia.MedidorRepositorio
 
-// (Asumiendo que todas tus clases como Cliente, Medidor, etc.
-//  están en el paquete 'com.example.demo')
+// --- IMPORTACIONES AÑADIDAS PARA GUARDAR EN ARCHIVO ---
+// (Estas importaciones SOLO funcionan en JVM/Desktop)
+import java.io.File
+import java.io.IOException
 
 class PersistenciaDatos : ClienteRepositorio, MedidorRepositorio, LecturaRepositorio, BoletaRepositorio {
 
-    // --- 1. AÑADE ESTE CLIENTE DE PRUEBA ---
-    private val clienteDePrueba = Cliente(
-        rut = "1-9", // <-- El RUT por defecto de tu UI
-        nombre = "Cliente de Prueba",
-        email = "prueba@cge.cl",
-        direccionFacturacion = "Av. Siempre Viva 123",
-        estado = EstadoCliente.ACTIVO,
-        tipoTarifa = TipoTarifa.RESIDENCIAL // <-- Usa el tipo de tarifa
-    )
+    // --- Archivo de Clientes ---
+    private val archivoClientes = File("clientes.csv")
+    private val clientes: MutableMap<String, Cliente> = cargarClientes()
 
-    // --- 2. MODIFICA ESTA LÍNEA ---
-    // Inicia el mapa con el cliente de prueba adentro
-    private val clientes = mutableMapOf<String, Cliente>(
-        clienteDePrueba.rut to clienteDePrueba
-    )
+    // --- Archivo de Boletas (NUEVO) ---
+    private val archivoBoletas = File("boletas.csv")
+    // 1. MODIFICADO: Ahora carga las boletas desde el archivo
+    private val boletas: MutableList<Boleta> = cargarBoletas()
 
-    // El resto de tus listas (medidores, lecturas, boletas) pueden seguir vacías
+    // --- Listas en memoria (sin cambios) ---
     private val medidores = mutableListOf<Medidor>()
     private val lecturas = mutableListOf<LecturaConsumo>()
-    private val boletas = mutableListOf<Boleta>()
 
-    // ... (El resto de tus funciones override)
-    // Implementaciones de ClienteRepositorio
+
+    // --- Implementaciones de ClienteRepositorio (sin cambios) ---
     override fun obtenerCliente(rut: String): Cliente? = clientes[rut]
-    override fun guardarCliente(cliente: Cliente) { clientes[cliente.rut] = cliente }
+    override fun guardarCliente(cliente: Cliente) {
+        clientes[cliente.rut] = cliente
+        salvarClientes()
+    }
     override fun obtenerTodosLosClientes(): Map<String, Cliente> = clientes.toMap()
 
-    // (Implementaciones de MedidorRepositorio)
+    // --- Implementaciones de BoletaRepositorio (ACTUALIZADO) ---
+    override fun obtenerBoleta(idCliente: String, anio: Int, mes: Int): Boleta? {
+        // Busca en la lista ya cargada
+        return boletas.find { it.idCliente == idCliente && it.anio == anio && it.mes == mes }
+    }
+
+    override fun guardarBoleta(boleta: Boleta) {
+        // 2. MODIFICADO: Añade la boleta a la lista y LUEGO guarda en archivo
+        boletas.add(boleta)
+        salvarBoletas() // <-- LLAMADA AÑADIDA
+    }
+
+    override fun obtenerTodasLasBoletas(): List<Boleta> = boletas.toList()
+
+
+    // --- Lógica de carga/guardado de Clientes (sin cambios) ---
+    private fun cargarClientes(): MutableMap<String, Cliente> {
+        val mapaClientes = mutableMapOf<String, Cliente>()
+        try {
+            if (!archivoClientes.exists()) {
+                val clienteDePrueba = Cliente(
+                    rut = "1-9", nombre = "Cliente de Prueba", email = "prueba@cge.cl",
+                    direccionFacturacion = "Av. Siempre Viva 123",
+                    estado = EstadoCliente.ACTIVO, tipoTarifa = TipoTarifa.RESIDENCIAL
+                )
+                mapaClientes[clienteDePrueba.rut] = clienteDePrueba
+                salvarClientes(mapaClientes)
+                return mapaClientes
+            }
+            archivoClientes.forEachLine { linea ->
+                if (linea.isNotBlank()) {
+                    val partes = linea.split(";")
+                    if (partes.size == 6) {
+                        val cliente = Cliente(
+                            rut = partes[0], nombre = partes[1], email = partes[2],
+                            direccionFacturacion = partes[3],
+                            estado = EstadoCliente.valueOf(partes[4]),
+                            tipoTarifa = TipoTarifa.valueOf(partes[5])
+                        )
+                        mapaClientes[cliente.rut] = cliente
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            println("Error al CARGAR clientes: ${e.message}")
+            return mutableMapOf()
+        }
+        return mapaClientes
+    }
+
+    private fun salvarClientes(mapaClientes: Map<String, Cliente>) {
+        try {
+            val stringBuilder = StringBuilder()
+            mapaClientes.values.forEach { cliente ->
+                stringBuilder.append(cliente.rut).append(";")
+                stringBuilder.append(cliente.nombre).append(";")
+                stringBuilder.append(cliente.email).append(";")
+                stringBuilder.append(cliente.direccionFacturacion).append(";")
+                stringBuilder.append(cliente.estado.name).append(";")
+                stringBuilder.append(cliente.tipoTarifa.name).append("\n")
+            }
+            archivoClientes.writeText(stringBuilder.toString())
+        } catch (e: Exception) {
+            println("Error al SALVAR clientes (plataforma no compatible?): ${e.message}")
+        }
+    }
+    private fun salvarClientes() = salvarClientes(this.clientes)
+
+
+    // --- Lógica de carga/guardado de Boletas (NUEVO) ---
+
+    private fun cargarBoletas(): MutableList<Boleta> {
+        val listaBoletas = mutableListOf<Boleta>()
+        try {
+            if (!archivoBoletas.exists()) {
+                archivoBoletas.createNewFile() // Crea el archivo si no existe
+                return listaBoletas // Devuelve lista vacía
+            }
+
+            // Si el archivo existe, leemos cada línea.
+            archivoBoletas.forEachLine { linea ->
+                if (linea.isNotBlank()) {
+                    // Formato: idCliente;anio;mes;kwhTotal;estado;detalle.subtotal;detalle.cargos;detalle.iva;detalle.total
+                    val partes = linea.split(";")
+                    if (partes.size == 9) {
+                        // Reconstruimos el TarifaDetalle
+                        val detalle = TarifaDetalle(
+                            kwh = partes[3].toDouble(), // kwhTotal
+                            subtotal = partes[5].toDouble(),
+                            cargos = partes[6].toDouble(),
+                            iva = partes[7].toDouble(),
+                            total = partes[8].toDouble()
+                        )
+                        // Reconstruimos la Boleta
+                        val boleta = Boleta(
+                            idCliente = partes[0],
+                            anio = partes[1].toInt(),
+                            mes = partes[2].toInt(),
+                            kwhTotal = partes[3].toDouble(),
+                            detalle = detalle,
+                            estado = EstadoBoleta.valueOf(partes[4])
+                        )
+                        listaBoletas.add(boleta)
+                    }
+                }
+            }
+        } catch (e: Exception) { // Captura IO, NumberFormat, etc.
+            println("Error al CARGAR boletas: ${e.message}")
+            return mutableListOf()
+        }
+        return listaBoletas
+    }
+
+    private fun salvarBoletas() {
+        try {
+            val stringBuilder = StringBuilder()
+            // Usamos la lista 'boletas' de la clase
+            boletas.forEach { boleta ->
+                // Aplanamos la boleta y su detalle en una sola línea CSV
+                stringBuilder.append(boleta.idCliente).append(";")
+                stringBuilder.append(boleta.anio).append(";")
+                stringBuilder.append(boleta.mes).append(";")
+                stringBuilder.append(boleta.kwhTotal).append(";")
+                stringBuilder.append(boleta.estado.name).append(";")
+                stringBuilder.append(boleta.detalle.subtotal).append(";")
+                stringBuilder.append(boleta.detalle.cargos).append(";")
+                stringBuilder.append(boleta.detalle.iva).append(";")
+                stringBuilder.append(boleta.detalle.total).append("\n")
+            }
+            // Escribimos (sobrescribimos) el archivo
+            archivoBoletas.writeText(stringBuilder.toString())
+        } catch (e: Exception) {
+            println("Error al SALVAR boletas (plataforma no compatible?): ${e.message}")
+        }
+    }
+
+
+    // --- Implementaciones de MedidorRepositorio (sin cambios) ---
     override fun obtenerMedidoresCliente(idCliente: String): List<Medidor> {
         return medidores
     }
     override fun guardarMedidor(medidor: Medidor) { medidores.add(medidor) }
 
-    // (Implementaciones de LecturaRepositorio)
+    // --- Implementaciones de LecturaRepositorio (sin cambios) ---
     override fun obtenerLectura(idMedidor: String, anio: Int, mes: Int): LecturaConsumo? {
         return lecturas.find { it.idMedidor == idMedidor && it.anio == anio && it.mes == mes }
     }
     override fun guardarLectura(lectura: LecturaConsumo) { lecturas.add(lectura) }
-
-    // (Implementaciones de BoletaRepositorio)
-    override fun obtenerBoleta(idCliente: String, anio: Int, mes: Int): Boleta? {
-        return boletas.find { it.idCliente == idCliente && it.anio == anio && it.mes == mes }
-    }
-    override fun guardarBoleta(boleta: Boleta) { boletas.add(boleta) }
-    override fun obtenerTodasLasBoletas(): List<Boleta> = boletas.toList()
 }

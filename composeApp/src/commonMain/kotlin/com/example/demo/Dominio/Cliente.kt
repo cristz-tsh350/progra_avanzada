@@ -1,5 +1,6 @@
 package com.example.demo.Dominio
 
+
 enum class TipoTarifa {
     RESIDENCIAL,
     COMERCIAL

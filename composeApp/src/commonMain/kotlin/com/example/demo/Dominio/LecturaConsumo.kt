@@ -2,6 +2,7 @@
 // [cite: 146]
 package com.example.demo.Dominio
 
+
 data class LecturaConsumo(
     val idMedidor: String, // [cite: 147]
     val anio: Int, // [cite: 147]
