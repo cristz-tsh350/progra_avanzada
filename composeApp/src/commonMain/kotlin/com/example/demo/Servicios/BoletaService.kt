@@ -1,9 +1,11 @@
-package com.example.demo.Persistencia
+package com.example.demo.Servicios
 
 import com.example.demo.Dominio.Boleta
 import com.example.demo.Dominio.EstadoBoleta
-import com.example.demo.Persistencia.*
-import com.example.demo.Servicios.TarifaService
+import com.example.demo.Persistencia.BoletaRepositorio
+import com.example.demo.Persistencia.ClienteRepositorio
+import com.example.demo.Persistencia.LecturaRepositorio
+import com.example.demo.Persistencia.MedidorRepositorio
 
 class BoletaService(
     // 2. Define sus dependencias

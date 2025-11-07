@@ -17,9 +17,9 @@ import com.example.demo.Dominio.Cliente
 import com.example.demo.Dominio.EstadoCliente // <-- IMPORTACIÓN AÑADIDA
 import com.example.demo.Dominio.LecturaConsumo
 import com.example.demo.Dominio.TipoTarifa // <-- IMPORTACIÓN AÑADIDA
-import com.example.demo.Persistencia.BoletaService
-import com.example.demo.Persistencia.PdfService
+import com.example.demo.Servicios.BoletaService
 import com.example.demo.Persistencia.PersistenciaDatos
+import com.example.demo.Servicios.PdfService
 import com.example.demo.Servicios.TarifaService
 
 // --- Instanciamos los servicios ---

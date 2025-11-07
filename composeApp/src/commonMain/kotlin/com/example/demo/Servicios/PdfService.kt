@@ -1,4 +1,4 @@
-package com.example.demo.Persistencia
+package com.example.demo.Servicios
 
 import com.example.demo.Dominio.Boleta
 import com.example.demo.Dominio.Cliente
