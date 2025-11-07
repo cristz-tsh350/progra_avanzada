@@ -6,12 +6,12 @@ import java.awt.Desktop
 import java.io.File
 
 fun openPdfDesktop(bytes: ByteArray, filename: String) {
-    // Corrección: Guardamos como .txt ya que el contenido es texto
-    val tempFile = File.createTempFile("boleta-", ".txt")
+    // Corrección: Guardamos como .pdf ya que el contenido es PDF real
+    val tempFile = File.createTempFile("boleta-", ".pdf") // <-- EXTENSIÓN CAMBIADA A .pdf
     tempFile.deleteOnExit()
     tempFile.writeBytes(bytes)
     try {
-        Desktop.getDesktop().open(tempFile) // Abrirá en tu editor de texto
+        Desktop.getDesktop().open(tempFile) // Abrirá en tu lector de PDF
     } catch (e: Exception) {
         println("Error al abrir archivo: ${e.message}")
     }

@@ -16,7 +16,7 @@ class BoletaService(
     private val tarifas: TarifaService
 ) {
 
-    // 3. Añade la lógica de cálculo de KWh
+    // ... (función calcularKwhClienteMes sin cambios) ...
     fun calcularKwhClienteMes(rutCliente: String, anio: Int, mes: Int): Double {
         val idMedidor = rutCliente // Asumimos que el medidor es el RUT
 
@@ -35,8 +35,23 @@ class BoletaService(
         return consumoDelMes
     }
 
+
     // 4. Añade la lógica de emisión de boleta
     fun emitirBoletaMensual(rutCliente: String, anio: Int, mes: Int): Boleta {
+
+        // --- INICIO DE LA MODIFICACIÓN ---
+        // 1. Verificar si la boleta ya existe en el repositorio
+        val boletaExistente = boletas.obtenerBoleta(rutCliente, anio, mes)
+        if (boletaExistente != null) {
+            // 2. Si existe, la devolvemos directamente (para re-emitir el PDF)
+            println("Boleta ya existía. Re-emitiendo la guardada.")
+            return boletaExistente
+        }
+        // --- FIN DE LA MODIFICACIÓN ---
+
+
+        // 3. Si no existe, continuamos con la lógica original para crearla
+        println("Creando nueva boleta para $rutCliente - $mes/$anio")
         val cliente = clientes.obtenerCliente(rutCliente)
             ?: throw Exception("Cliente '$rutCliente' no encontrado. (Recuerda registrarlo)")
 
@@ -52,6 +67,7 @@ class BoletaService(
             detalle = detalle,
             estado = EstadoBoleta.EMITIDA
         )
+        // 4. Guardamos la boleta NUEVA
         boletas.guardarBoleta(boleta)
         return boleta
     }

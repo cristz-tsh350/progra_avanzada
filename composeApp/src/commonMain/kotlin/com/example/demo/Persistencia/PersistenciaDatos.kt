@@ -50,9 +50,23 @@ class PersistenciaDatos : ClienteRepositorio, MedidorRepositorio, LecturaReposit
     }
 
     override fun guardarBoleta(boleta: Boleta) {
-        // 2. MODIFICADO: Añade la boleta a la lista y LUEGO guarda en archivo
-        boletas.add(boleta)
-        salvarBoletas() // <-- LLAMADA AÑADIDA
+        // --- INICIO DE LA MODIFICACIÓN ---
+
+        // 1. Buscar si existe una boleta con el mismo ID (cliente-año-mes)
+        //    Usamos el ID único que definimos en la clase Boleta.
+        val indiceExistente = boletas.indexOfFirst { it.id == boleta.id }
+
+        if (indiceExistente != -1) {
+            // 2. Si existe, la reemplazamos en la lista
+            println("Actualizando boleta existente en persistencia.")
+            boletas[indiceExistente] = boleta
+        } else {
+            // 3. Si no existe, la añadimos
+            println("Añadiendo nueva boleta a persistencia.")
+            boletas.add(boleta)
+        }
+
+        salvarBoletas()
     }
 
     override fun obtenerTodasLasBoletas(): List<Boleta> = boletas.toList()

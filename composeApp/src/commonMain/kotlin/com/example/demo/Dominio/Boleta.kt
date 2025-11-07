@@ -1,35 +1,40 @@
-
-
 package com.example.demo.Dominio
 
+import com.example.demo.Dominio.EntidadBase
+import com.example.demo.Dominio.EstadoBoleta
+import com.example.demo.Dominio.ExportablePDF
+import com.example.demo.Dominio.PdfTable
+import com.example.demo.Dominio.TarifaDetalle
 import kotlin.time.Instant
 
 data class Boleta(
-    val idCliente: String, // [cite: 141]
-    val anio: Int, // [cite: 142]
-    val mes: Int, // [cite: 142]
-    val kwhTotal: Double, // [cite: 143]
-    val detalle: TarifaDetalle, // [cite: 144]
-    var estado: EstadoBoleta // [cite: 144]
-) : EntidadBase(), ExportablePDF { // [cite: 156]
+    val idCliente: String, //
+    val anio: Int, //
+    val mes: Int, //
+    val kwhTotal: Double, //
+    val detalle: TarifaDetalle, //
+    var estado: EstadoBoleta //
+) : EntidadBase(), ExportablePDF { //
 
     // Simulación de EntidadBase
     override val id: String = "$idCliente-$anio-$mes"
     override val createdAt: String = ""
     override val updatedAt: String = ""
 
-    // Implementación de la interfaz [cite: 157]
+    // Implementación de la interfaz
     override fun toPdfTable(): PdfTable {
         val headers = listOf("Concepto", "Valor")
         val rows = listOf(
             listOf("ID Cliente", idCliente),
             listOf("Periodo", "$mes/$anio"),
             listOf("KWh Consumidos", kwhTotal.toString()),
-            listOf("Subtotal", detalle.subtotal.toString()),
-            listOf("Cargos", detalle.cargos.toString()),
-            listOf("IVA", detalle.iva.toString()),
-            listOf("TOTAL", detalle.total.toString())
+            // --- LÍNEAS MODIFICADAS ---
+            listOf("Subtotal", "$${detalle.subtotal}"),
+            listOf("Cargos", "$${detalle.cargos}"),
+            listOf("IVA", "$${detalle.iva}"),
+            listOf("TOTAL", "$${detalle.total}")
+            // --- FIN DE LA MODIFICACIÓN ---
         )
-        return PdfTable(headers, rows) // [cite: 145]
+        return PdfTable(headers, rows) //
     }
 }
