@@ -1,20 +1,23 @@
-// Fichero: servicios/TarifaService.kt
-// [cite: 87]
 package com.example.demo.Servicios
 
-import com.example.demo.Dominio.Cliente
-import com.example.demo.Dominio.Tarifa
-import com.example.demo.Dominio.TarifaResidencial
+import com.example.demo.Dominio.* // Importa todo de Dominio
 
-// Servicio para decidir qué tarifa aplicar
 class TarifaService {
 
-    // Lógica simple: por ahora todos son residenciales
-    // (En un caso real, esto se basaría en el cliente)
-    fun tarifaParaCliente(cliente: Cliente): Tarifa
-    { // [cite: 88]
-        // Aquí se podría implementar lógica para decidir
-        // si es TarifaComercial o TarifaResidencial
-        return TarifaResidencial(550.0, 120.5, 0.19)
+    // Ahora usa 'when' para decidir qué tarifa devolver (Polimorfismo)
+    fun tarifaParaCliente(cliente: Cliente): Tarifa {
+        return when (cliente.tipoTarifa) {
+            TipoTarifa.RESIDENCIAL -> TarifaResidencial(
+                cargoFijo = 550.0,
+                precioKwh = 120.5,
+                iva = 0.19
+            )
+            TipoTarifa.COMERCIAL -> TarifaComercial(
+                cargoFijo = 800.0,
+                precioKwh = 150.0,
+                recargoComercial = 250.0, // Recargo adicional
+                iva = 0.19 // Diferente cálculo de IVA (aquí iría)
+            )
+        }
     }
 }
